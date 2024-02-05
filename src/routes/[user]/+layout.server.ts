@@ -1,4 +1,4 @@
-import { redirect } from "@sveltejs/kit"
+import { redirect, type Actions } from "@sveltejs/kit"
 import type { PageServerLoad } from "../[user]/$types"
 
 
@@ -13,7 +13,8 @@ export const load: PageServerLoad = async (event: any) => {
   }
 
   return {
-    username: param.user
+    username: param.user,
+    cookie: event.cookies.get("sessionID"),
   }
 }
 

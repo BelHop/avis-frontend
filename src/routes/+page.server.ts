@@ -2,11 +2,9 @@ import { redirect } from "@sveltejs/kit"
 import type { PageServerLoad } from "./$types"
 
 export const load: PageServerLoad = async (event) => {
-  if (typeof window != 'undefined') {
-    const sessionID = event.cookies.get("sessionID")
-    if (sessionID) {
-      throw redirect(301, `/${parseJwt(sessionID).username}`)
-    }
+  const session = event.cookies.get("sessionID")
+  if (session) {
+    throw redirect(301, `/${parseJwt(String(session)).username}`)
   }
 }
 

@@ -2,6 +2,8 @@ import type { Actions } from './$types';
 import { redirect } from "@sveltejs/kit"
 import type { PageServerLoad } from "../login/$types"
 
+import { SIGNIN_URL } from '$env/static/private'
+
 export const load: PageServerLoad = async (event) => {
   const session = event.cookies.get("sessionID")
   if (session) {
@@ -16,7 +18,7 @@ function parseJwt (token: string) {
 export const actions: Actions = {
   default: async (event) => {
     const data = await event.request.formData();
-    let response = await fetch("http://localhost:3001/auth/signin", {      
+    let response = await fetch(`${SIGNIN_URL}`, {      
       method: 'POST',
       credentials: 'include',
       body: JSON.stringify({
@@ -29,7 +31,7 @@ export const actions: Actions = {
       const auth = response.headers.get("Authorization");
       event.cookies.set("sessionID", `Bearer ${auth}`, {
         path: "/",
-        maxAge: "3600"
+        maxAge: 3600
       });
     }
   }

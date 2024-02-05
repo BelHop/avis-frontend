@@ -1,11 +1,9 @@
-import { redirect } from "@sveltejs/kit";
-import type { PageServerLoad } from "./$types"
-import type { Actions } from './$types';
 
-import { NOTES_API_URL } from '$env/static/private'
+import { redirect, type Actions } from "@sveltejs/kit"
+import type { PageServerLoad } from "./$types"
 
 export const load: PageServerLoad = async ({ fetch, params, cookies }) => {
-  const response = await fetch(`http://localhost:3000/find/${params.user}`, {
+  const response = await fetch(`http://localhost:3000/find/${params.user}/${params.slug}`, {
     method: 'GET',
     headers: {
       'Authorization': `${cookies.get("sessionID")}`
@@ -13,21 +11,21 @@ export const load: PageServerLoad = async ({ fetch, params, cookies }) => {
   })
 
   let data = await response.json()
-  let notes = JSON.stringify(data)
-  let parsed = JSON.parse(notes)
+  const note = JSON.stringify(data)
+  const parsed = JSON.parse(note)
+
   return {
-    notes: parsed,
-    user: params.user,
-    cookieVal: cookies.get("sessionID")
+    note: parsed, 
+    cookie: cookies.get("sessionID")
   }
 }
 
 export const actions: Actions = {
-  Create: async ({ request, cookies }) => {
+  default: async ({ request, cookies }) => {
     const data = await request.formData();
-    fetch(`${NOTES_API_URL}/new`, {      
-      method: 'POST',
-      credentials: 'include',
+    fetch(`http://localhost:3000/update/${parseJwt(String(cookies.get("sessionID"))).username}/${data.get("title")}`, {
+      method: 'PUT',
+      credentials: 'include',      
       headers: {
         'Authorization': `${cookies.get("sessionID")}`
       },
@@ -37,15 +35,7 @@ export const actions: Actions = {
         user: parseJwt(String(cookies.get("sessionID"))).username
       }),
     })
-  },
-
-  Logout: async ({ cookies }) => {
-    cookies.set('sessionID', '', {
-      path: '/',
-      expires: new Date(0),
-    })
-
-    throw redirect(302, '/')
+    throw redirect(302, `/${parseJwt(String(cookies.get("sessionID"))).username}`) 
   },
 }
 
@@ -65,4 +55,3 @@ function Sanitize(str: String): String {
   const reg = /[&<>"'/`?]/ig;
   return str.replace(reg, (match)=>(map[match]));
 }
-
